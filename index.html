@@ -2,11 +2,12 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=no">
-<title>Mappa Pinch Zoom</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=5">
+<title>Mappa Fullscreen</title>
 
 <style>
-  body, html {
+  html, body {
     margin: 0;
     padding: 0;
     background: #000;
@@ -15,14 +16,15 @@
     touch-action: none;
   }
 
-  #container {
+  #wrapper {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
     position: relative;
+    touch-action: none;
   }
 
-  #map {
+  #image {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -33,81 +35,89 @@
 </head>
 <body>
 
-<div id="container">
-  <img id="map" src="mappa.png" alt="Mappa">
+<div id="wrapper">
+  <img id="image" src="mappa.png" />
 </div>
 
 <script>
-const img = document.getElementById('map');
+const img = document.getElementById("image");
+const wrapper = document.getElementById("wrapper");
 
-let scale = 1;
-let lastScale = 1;
-let posX = 0;
-let posY = 0;
-let lastPosX = 0;
-let lastPosY = 0;
+let scale = 1, lastScale = 1;
+let posX = 0, posY = 0, lastPosX = 0, lastPosY = 0;
+let startX = 0, startY = 0;
+let startDistance = 0;
+let doubleTapTimeout = 0;
 
-let startDist = 0;
-let initialMid = {x: 0, y: 0};
-
-function getDist(t1, t2) {
-  return Math.hypot(t2.pageX - t1.pageX, t2.pageY - t1.pageY);
+// Calcola distanza tra due dita
+function distance(ev) {
+  return Math.hypot(
+    ev.touches[0].pageX - ev.touches[1].pageX,
+    ev.touches[0].pageY - ev.touches[1].pageY
+  );
 }
 
-function getMid(t1, t2) {
-  return { x: (t1.pageX + t2.pageX)/2, y: (t1.pageY + t2.pageY)/2 };
-}
-
-document.addEventListener("touchstart", e => {
-  if (e.touches.length === 2) {
-    startDist = getDist(e.touches[0], e.touches[1]);
-    initialMid = getMid(e.touches[0], e.touches[1]);
+wrapper.addEventListener("touchstart", ev => {
+  if (ev.touches.length === 1) {
+    startX = ev.touches[0].pageX - lastPosX;
+    startY = ev.touches[0].pageY - lastPosY;
+  }
+  if (ev.touches.length === 2) {
+    startDistance = distance(ev);
   }
 });
 
-document.addEventListener("touchmove", e => {
-  e.preventDefault();
+// Pinch + Pan
+wrapper.addEventListener("touchmove", ev => {
+  ev.preventDefault();
 
-  if (e.touches.length === 2) {
-    const newDist = getDist(e.touches[0], e.touches[1]);
-    scale = Math.min(5, Math.max(1, lastScale * (newDist / startDist)));
-
-    const mid = getMid(e.touches[0], e.touches[1]);
-    posX = lastPosX + (mid.x - initialMid.x);
-    posY = lastPosY + (mid.y - initialMid.y);
-
-    update();
+  if (ev.touches.length === 2) {
+    let newDist = distance(ev);
+    scale = Math.min(5, Math.max(1, lastScale * (newDist / startDistance)));
   }
 
-  if (e.touches.length === 1 && scale > 1) {
-    posX = lastPosX + (e.touches[0].pageX - initialMid.x);
-    posY = lastPosY + (e.touches[0].pageY - initialMid.y);
-    update();
+  if (ev.touches.length >= 1 && scale > 1) {
+    posX = ev.touches[0].pageX - startX;
+    posY = ev.touches[0].pageY - startY;
   }
+
+  applyTransform();
 });
 
-document.addEventListener("touchend", () => {
+// Fine gesture → salva stato stabile
+wrapper.addEventListener("touchend", () => {
   lastScale = scale;
-  lastPosX = posX;
-  lastPosY = posY;
-});
 
-function update() {
-  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-}
-
-// Doppio tap per zoom
-let lastTap = 0;
-document.addEventListener("touchend", e => {
-  const now = Date.now();
-  if (now - lastTap < 300) {
-    scale = scale >= 2 ? 1 : 2;
-    lastScale = scale;
+  // Se ritorna a scala 1, centra automaticamente l’immagine
+  if (scale <= 1.02) {
+    scale = lastScale = 1;
     posX = posY = lastPosX = lastPosY = 0;
-    update();
+  } else {
+    lastPosX = posX;
+    lastPosY = posY;
   }
-  lastTap = now;
+
+  applyTransform();
 });
+
+// Doppio-tap per zoom IN / OUT
+wrapper.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - doubleTapTimeout < 250) {
+    if (scale > 1) {
+      scale = lastScale = 1;
+      posX = posY = lastPosX = lastPosY = 0;
+    } else {
+      scale = lastScale = 2;
+    }
+    applyTransform();
+  }
+  doubleTapTimeout = now;
+});
+
+function applyTransform() {
+  img.style.transform = `translate(${posX}px,${posY}px) scale(${scale})`;
+}
 </script>
 
 </body>
