@@ -61,11 +61,12 @@
   // Inserisco l’immagine come mappa
   L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
-  // Posiziona la mappa pienamente visibile
-  map.fitBounds(bounds);
+// Imposta zoom iniziale e posizione sull’angolo alto sinistra
+map.setView([0, 0], 2); // <<< Modifica 2 se serve più o meno zoom
 
-  // Evita bordi neri fuori immagine
-  map.setMaxBounds(bounds);
+// Blocca i bordi per non vedere grigio fuori immagine
+map.setMaxBounds(bounds);
+map.options.maxBoundsViscosity = 1.0;
 
 </script>
 
