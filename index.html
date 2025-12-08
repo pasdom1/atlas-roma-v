@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=5">
+      content="width=device-width, initial-scale=1, maximum-scale=5">
 <title>Mappa Fullscreen</title>
 
 <style>
@@ -20,7 +20,6 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    position: relative;
     touch-action: none;
   }
 
@@ -28,67 +27,60 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform-origin: center center;
     will-change: transform;
+    transform-origin: center center;
   }
 </style>
 </head>
 <body>
 
 <div id="wrapper">
-  <img id="image" src="mappa.png" />
+  <img id="image" src="mappa.png">
 </div>
 
 <script>
-const img = document.getElementById("image");
-const wrapper = document.getElementById("wrapper");
-
 let scale = 1, lastScale = 1;
 let posX = 0, posY = 0, lastPosX = 0, lastPosY = 0;
-let startX = 0, startY = 0;
-let startDistance = 0;
-let doubleTapTimeout = 0;
+let startX = 0, startY = 0, startDist = 0;
 
-// Calcola distanza tra due dita
-function distance(ev) {
+const img = document.getElementById("image");
+const wrap = document.getElementById("wrapper");
+
+function distance(e) {
   return Math.hypot(
-    ev.touches[0].pageX - ev.touches[1].pageX,
-    ev.touches[0].pageY - ev.touches[1].pageY
+    e.touches[0].pageX - e.touches[1].pageX,
+    e.touches[0].pageY - e.touches[1].pageY
   );
 }
 
-wrapper.addEventListener("touchstart", ev => {
-  if (ev.touches.length === 1) {
-    startX = ev.touches[0].pageX - lastPosX;
-    startY = ev.touches[0].pageY - lastPosY;
-  }
-  if (ev.touches.length === 2) {
-    startDistance = distance(ev);
+wrap.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 2) {
+    startDist = distance(e);
+  } else {
+    startX = e.touches[0].clientX - lastPosX;
+    startY = e.touches[0].clientY - lastPosY;
   }
 });
 
-// Pinch + Pan
-wrapper.addEventListener("touchmove", ev => {
-  ev.preventDefault();
+wrap.addEventListener("touchmove", (e) => {
+  e.preventDefault();
 
-  if (ev.touches.length === 2) {
-    let newDist = distance(ev);
-    scale = Math.min(5, Math.max(1, lastScale * (newDist / startDistance)));
+  if (e.touches.length === 2) {
+    let newDist = distance(e);
+    scale = Math.min(5, Math.max(1, lastScale * (newDist / startDist)));
   }
 
-  if (ev.touches.length >= 1 && scale > 1) {
-    posX = ev.touches[0].pageX - startX;
-    posY = ev.touches[0].pageY - startY;
+  if (e.touches.length === 1 && scale > 1) {
+    posX = e.touches[0].clientX - startX;
+    posY = e.touches[0].clientY - startY;
   }
 
-  applyTransform();
+  update();
 });
 
-// Fine gesture → salva stato stabile
-wrapper.addEventListener("touchend", () => {
+wrap.addEventListener("touchend", () => {
   lastScale = scale;
 
-  // Se ritorna a scala 1, centra automaticamente l’immagine
   if (scale <= 1.02) {
     scale = lastScale = 1;
     posX = posY = lastPosX = lastPosY = 0;
@@ -96,27 +88,27 @@ wrapper.addEventListener("touchend", () => {
     lastPosX = posX;
     lastPosY = posY;
   }
-
-  applyTransform();
+  update();
 });
 
-// Doppio-tap per zoom IN / OUT
-wrapper.addEventListener("touchend", e => {
+// doppio tap per zoom
+let lastTap = 0;
+wrap.addEventListener("touchend", e => {
   const now = Date.now();
-  if (now - doubleTapTimeout < 250) {
+  if (now - lastTap < 300) {
     if (scale > 1) {
       scale = lastScale = 1;
       posX = posY = lastPosX = lastPosY = 0;
     } else {
       scale = lastScale = 2;
     }
-    applyTransform();
+    update();
   }
-  doubleTapTimeout = now;
+  lastTap = now;
 });
 
-function applyTransform() {
-  img.style.transform = `translate(${posX}px,${posY}px) scale(${scale})`;
+function update() {
+  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
 }
 </script>
 
