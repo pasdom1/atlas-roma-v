@@ -2,15 +2,97 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Re:Re:ATLAS – Municipio Roma V</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mappa Fullscreen</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      background: #000;
+      overflow: hidden;
+    }
+
+    .image-wrapper {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* evita i bordi neri */
+      transform-origin: center center;
+      transition: transform 0.08s linear;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+    }
+  </style>
 </head>
 <body>
-  <div id="viewer" aria-label="Mappa interattiva">
-    <img id="mapImage" src="assets/mappa.png" alt="Mappa" />
-  </div>
 
-  <script src="script.js"></script>
+<div class="image-wrapper" id="wrapper">
+  <img id="img" src="assets/mappa.png" alt="Mappa Roma V">
+</div>
+
+<div class="controls">
+  <input id="zoom" type="range" min="1" max="5" value="1" step="0.1">
+</div>
+
+<script>
+  const img = document.getElementById("img");
+  const zoom = document.getElementById("zoom");
+  const wrapper = document.getElementById("wrapper");
+
+  let scale = 1;
+  let pos = { x: 0, y: 0 };
+  let isDragging = false;
+  let startPos = { x: 0, y: 0 };
+
+  zoom.addEventListener("input", () => {
+    scale = parseFloat(zoom.value);
+    if (scale === 1) pos = { x: 0, y: 0 };
+    update();
+  });
+
+  wrapper.addEventListener("pointerdown", (e) => {
+    if (scale <= 1) return;
+    isDragging = true;
+    wrapper.setPointerCapture(e.pointerId);
+    startPos = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+  });
+
+  wrapper.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    pos.x = e.clientX - startPos.x;
+    pos.y = e.clientY - startPos.y;
+    update();
+  });
+
+  wrapper.addEventListener("pointerup", () => { isDragging = false; });
+
+  function update() {
+    img.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+  }
+</script>
+
 </body>
 </html>
