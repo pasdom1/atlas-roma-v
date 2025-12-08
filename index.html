@@ -1,1 +1,67 @@
-test ciao
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Mappa Interattiva</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+  html, body { margin: 0; height: 100%; }
+  #map { width: 100%; height: 100%; background: black; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+  const imgWidth = 3509;
+  const imgHeight = 2482;
+  const bounds = [[0, 0], [imgHeight, imgWidth]];
+
+  const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3,
+    maxZoom: 6,
+    zoomControl: true,
+    scrollWheelZoom: true,
+    touchZoom: true,
+    dragging: true,
+    doubleClickZoom: true,
+    tap: false,
+    attributionControl: false
+  });
+
+  // Aggiungo immagine
+  L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
+
+  // Calcolo zoom minimo per riempire schermo
+  function autoZoom() {
+    const zoomX = Math.log2(window.innerWidth / imgWidth);
+    const zoomY = Math.log2(window.innerHeight / imgHeight);
+    return Math.max(zoomX, zoomY) + 2; // Zoom iniziale più forte
+  }
+
+  const initialZoom = autoZoom();
+
+  // In alto a sinistra — con zoom adatto
+  map.setView([0, 0], initialZoom);
+
+  // Impedisci bordi visibili
+  map.setMaxBounds(bounds);
+  map.options.maxBoundsViscosity = 1.0;
+
+  // Se cambi orientamento telefono → rifai zoom corretto
+  window.addEventListener('resize', () => {
+    map.setView([0, 0], autoZoom());
+  });
+
+</script>
+
+</body>
+</html>
