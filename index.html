@@ -15,22 +15,20 @@
     overflow: hidden;
     background: #000;
   }
-
   #viewport {
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
     touch-action: none;
+    overflow: hidden;
     position: relative;
   }
-
   #map-container {
-    width: 3509px;   /* ← larghezza reale tua immagine */
-    height: 2482px;  /* ← altezza reale tua immagine */
+    width: 3509px;   /* Dim. reali tua mappa */
+    height: 2482px;
     position: absolute;
-    left: 0; top: 0;
+    left: 0;
+    top: 0;
   }
-
   #map {
     width: 100%;
     height: 100%;
@@ -43,30 +41,33 @@
 
 <div id="viewport">
   <div id="map-container">
-    <img id="map" src="./assets/mappa.png">
+    <img id="map" src="./assets/mappa.png" alt="Mappa">
   </div>
 </div>
 
 <script src="https://unpkg.com/@panzoom/panzoom/dist/panzoom.min.js"></script>
 
 <script>
-const mapContainer = document.getElementById('map-container');
 const viewport = document.getElementById('viewport');
+const mapContainer = document.getElementById('map-container');
 
+// Inizializza Panzoom
 const panzoom = Panzoom(mapContainer, {
-  maxScale: 6,
+  maxScale: 8,
   minScale: 1,
-  contain: 'outside'
+  contain: 'outside',
+  pinchSpeed: 1.5
 });
 
-// blocchiamo lo zoom / scroll del browser
+// Blocca il pinch/scroll del browser
 viewport.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
-// Abilitiamo pinch/pan
-panzoom.setOptions({ pinchSpeed: 2 });
+// Zoom iniziale leggero
+const initialZoom = 1.25;
+panzoom.zoom(initialZoom);
 
-// ZOOM iniziale (mostra angolo alto sinistra)
-panzoom.zoom(1.3); // puoi cambiare il numero come vuoi
+// Angolo in alto a sinistra (0,0) senza pan
+panzoom.pan(0, 0);
 
 </script>
 
