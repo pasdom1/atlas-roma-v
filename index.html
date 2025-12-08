@@ -1,59 +1,16 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Atlas Roma V</title>
-
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #000;
-    }
-    #viewer {
-        width: 100vw;
-        height: 100vh;
-    }
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.css"/>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Re:Re:ATLAS – Municipio Roma V</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="viewer" aria-label="Mappa interattiva">
+    <img id="mapImage" src="assets/mappa.png" alt="Mappa" />
+  </div>
 
-<div id="viewer"></div>
-
-<script>
-    const viewer = OpenSeadragon({
-        id: "viewer",
-        prefixUrl: "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/images/",
-        tileSources: {
-            type: 'image',
-            url: 'assets/mappa.png'
-        },
-        showNavigationControl: true,
-        maxZoomPixelRatio: 3,
-        visibilityRatio: 1,
-        constrainDuringPan: true
-    });
-viewer.addHandler('open', function () {
-  const initialCenter = new OpenSeadragon.Point(
-    0.4858845690027218,
-    0.25180158477820913
-  );
-  const initialZoom = 1.1597407584609185;
-
-  viewer.viewport.zoomTo(initialZoom, null, true);
-  viewer.viewport.panTo(initialCenter, true);
-});
-
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
-
