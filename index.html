@@ -27,41 +27,47 @@
   const map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -3,
-    maxZoom: 6,
+    maxZoom: 4,
     zoomControl: true,
+    attributionControl: false,
     scrollWheelZoom: true,
     touchZoom: true,
     dragging: true,
     doubleClickZoom: true,
-    tap: false,
-    attributionControl: false
+    tap: false
   });
 
-  // Aggiungo immagine
+  // Immagine come mappa
   L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
-  // Calcolo zoom minimo per riempire schermo
-  function autoZoom() {
-    const zoomX = Math.log2(window.innerWidth / imgWidth);
-    const zoomY = Math.log2(window.innerHeight / imgHeight);
-    return Math.max(zoomX, zoomY) + 2; // Zoom iniziale più forte
+  // Calcolo zoom iniziale per NON mostrare bordi neri
+  function getInitialZoom() {
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    
+    const zoomX = Math.log2(screenW / imgWidth);
+    const zoomY = Math.log2(screenH / imgHeight);
+    
+    // ⬇️ zoom che riempie lo schermo senza uscire dai bordi
+    return Math.min(zoomX, zoomY) + 0.8; 
   }
 
-  const initialZoom = autoZoom();
+  const initialZoom = getInitialZoom();
 
-  // In alto a sinistra — con zoom adatto
+  // ⭐ Parti in alto a sinistra, con zoom poco
   map.setView([0, 0], initialZoom);
 
-  // Impedisci bordi visibili
+  // 🚫 Impedisci di andare fuori immagine
   map.setMaxBounds(bounds);
   map.options.maxBoundsViscosity = 1.0;
-
-  // Se cambi orientamento telefono → rifai zoom corretto
+  
+  // Adattamento automatico se ruoti telefono
   window.addEventListener('resize', () => {
-    map.setView([0, 0], autoZoom());
+    map.setView([0, 0], getInitialZoom());
   });
 
 </script>
+
 
 </body>
 </html>
