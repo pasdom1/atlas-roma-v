@@ -1,97 +1,113 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Mappa Fullscreen</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=no">
+<title>Mappa Pinch Zoom</title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+  }
 
-    body {
-      background: #000;
-      overflow: hidden;
-    }
+  #container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
 
-    .image-wrapper {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      touch-action: none;
-    }
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* evita i bordi neri */
-      transform-origin: center center;
-      transition: transform 0.08s linear;
-    }
-
-    .controls {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: rgba(0,0,0,0.5);
-      padding: 10px;
-      display: flex;
-      gap: 10px;
-    }
-
-    input[type="range"] {
-      flex: 1;
-    }
-  </style>
+  #map {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: center center;
+    will-change: transform;
+  }
+</style>
 </head>
 <body>
 
-<div class="image-wrapper" id="wrapper">
-  <img id="img" src="assets/mappa.png" alt="Mappa Roma V">
-</div>
-
-<div class="controls">
-  <input id="zoom" type="range" min="1" max="5" value="1" step="0.1">
+<div id="container">
+  <img id="map" src="mappa.png" alt="Mappa">
 </div>
 
 <script>
-  const img = document.getElementById("img");
-  const zoom = document.getElementById("zoom");
-  const wrapper = document.getElementById("wrapper");
+const img = document.getElementById('map');
 
-  let scale = 1;
-  let pos = { x: 0, y: 0 };
-  let isDragging = false;
-  let startPos = { x: 0, y: 0 };
+let scale = 1;
+let lastScale = 1;
+let posX = 0;
+let posY = 0;
+let lastPosX = 0;
+let lastPosY = 0;
 
-  zoom.addEventListener("input", () => {
-    scale = parseFloat(zoom.value);
-    if (scale === 1) pos = { x: 0, y: 0 };
-    update();
-  });
+let startDist = 0;
+let initialMid = {x: 0, y: 0};
 
-  wrapper.addEventListener("pointerdown", (e) => {
-    if (scale <= 1) return;
-    isDragging = true;
-    wrapper.setPointerCapture(e.pointerId);
-    startPos = { x: e.clientX - pos.x, y: e.clientY - pos.y };
-  });
+function getDist(t1, t2) {
+  return Math.hypot(t2.pageX - t1.pageX, t2.pageY - t1.pageY);
+}
 
-  wrapper.addEventListener("pointermove", (e) => {
-    if (!isDragging) return;
-    pos.x = e.clientX - startPos.x;
-    pos.y = e.clientY - startPos.y;
-    update();
-  });
+function getMid(t1, t2) {
+  return { x: (t1.pageX + t2.pageX)/2, y: (t1.pageY + t2.pageY)/2 };
+}
 
-  wrapper.addEventListener("pointerup", () => { isDragging = false; });
-
-  function update() {
-    img.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${scale})`;
+document.addEventListener("touchstart", e => {
+  if (e.touches.length === 2) {
+    startDist = getDist(e.touches[0], e.touches[1]);
+    initialMid = getMid(e.touches[0], e.touches[1]);
   }
+});
+
+document.addEventListener("touchmove", e => {
+  e.preventDefault();
+
+  if (e.touches.length === 2) {
+    const newDist = getDist(e.touches[0], e.touches[1]);
+    scale = Math.min(5, Math.max(1, lastScale * (newDist / startDist)));
+
+    const mid = getMid(e.touches[0], e.touches[1]);
+    posX = lastPosX + (mid.x - initialMid.x);
+    posY = lastPosY + (mid.y - initialMid.y);
+
+    update();
+  }
+
+  if (e.touches.length === 1 && scale > 1) {
+    posX = lastPosX + (e.touches[0].pageX - initialMid.x);
+    posY = lastPosY + (e.touches[0].pageY - initialMid.y);
+    update();
+  }
+});
+
+document.addEventListener("touchend", () => {
+  lastScale = scale;
+  lastPosX = posX;
+  lastPosY = posY;
+});
+
+function update() {
+  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+}
+
+// Doppio tap per zoom
+let lastTap = 0;
+document.addEventListener("touchend", e => {
+  const now = Date.now();
+  if (now - lastTap < 300) {
+    scale = scale >= 2 ? 1 : 2;
+    lastScale = scale;
+    posX = posY = lastPosX = lastPosY = 0;
+    update();
+  }
+  lastTap = now;
+});
 </script>
 
 </body>
