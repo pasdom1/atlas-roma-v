@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <title>Mappa Roma V - React</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+
   <style>
     html, body {
       margin:0; padding:0;
       background:#000;
       height:100%;
-      width:100%;
       overflow:hidden;
       touch-action:none;
     }
@@ -36,7 +36,7 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
 <script>
-const { useState, useRef } = React;
+const { useRef, useEffect } = React;
 
 function App() {
   const imgRef = useRef(null);
@@ -46,28 +46,27 @@ function App() {
   let startX = 0, startY = 0, startDistance = 0;
   let lastTap = 0;
 
-  // Calcola distanza tra dita
-  function dist(ev) {
-    return Math.hypot(
+  const dist = (ev) =>
+    Math.hypot(
       ev.touches[0].pageX - ev.touches[1].pageX,
       ev.touches[0].pageY - ev.touches[1].pageY
     );
-  }
 
-  function update() {
-    imgRef.current.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-  }
+  const update = () => {
+    imgRef.current.style.transform =
+      `translate(${posX}px, ${posY}px) scale(${scale})`;
+  };
 
-  function handleStart(ev) {
+  const handleStart = (ev) => {
     if (ev.touches.length === 2) {
       startDistance = dist(ev);
     } else {
       startX = ev.touches[0].pageX - lastPosX;
       startY = ev.touches[0].pageY - lastPosY;
     }
-  }
+  };
 
-  function handleMove(ev) {
+  const handleMove = (ev) => {
     ev.preventDefault();
 
     if (ev.touches.length === 2) {
@@ -81,9 +80,9 @@ function App() {
     }
 
     update();
-  }
+  };
 
-  function handleEnd(ev) {
+  const handleEnd = () => {
     lastScale = scale;
 
     if (scale <= 1.02) {
@@ -93,33 +92,46 @@ function App() {
       lastPosX = posX;
       lastPosY = posY;
     }
-
     update();
+  };
 
+  const handleTap = () => {
     const now = Date.now();
     if (now - lastTap < 300) {
-      scale = scale > 1 ? 1 : 2;
-      lastScale = scale;
-      posX = posY = lastPosX = lastPosY = 0;
+      if (scale > 1) {
+        scale = lastScale = 1;
+        posX = posY = lastPosX = lastPosY = 0;
+      } else {
+        scale = lastScale = 2;
+      }
       update();
     }
     lastTap = now;
-  }
+  };
 
-  return React.createElement(
-    "img",
-    {
-      ref: imgRef,
-      src: "https://pasdom1.github.io/atlas-roma-v/assets/mappa.png",
-      onTouchStart: handleStart,
-      onTouchMove: handleMove,
-      onTouchEnd: handleEnd
-    }
-  );
+  useEffect(() => {
+    const img = imgRef.current;
+    img.addEventListener('touchstart', handleStart);
+    img.addEventListener('touchmove', handleMove);
+    img.addEventListener('touchend', handleEnd);
+    img.addEventListener('touchend', handleTap);
+    return () => {
+      img.removeEventListener('touchstart', handleStart);
+      img.removeEventListener('touchmove', handleMove);
+      img.removeEventListener('touchend', handleEnd);
+      img.removeEventListener('touchend', handleTap);
+    };
+  }, []);
+
+  return React.createElement("img", {
+    ref: imgRef,
+    src: "./assets/mappa.png"
+  });
 }
 
-// Render App
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+ReactDOM.createRoot(document.getElementById('root')).render(
+  React.createElement(App)
+);
 </script>
 
 </body>
