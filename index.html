@@ -41,30 +41,36 @@
   L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
   // Calcolo zoom iniziale per NON mostrare bordi neri
-  function getInitialZoom() {
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
-    
-    const zoomX = Math.log2(screenW / imgWidth);
-    const zoomY = Math.log2(screenH / imgHeight);
-    
-    // ⬇️ zoom che riempie lo schermo senza uscire dai bordi
-    return Math.min(zoomX, zoomY) + 0.8; 
-  }
+// Calcolo zoom iniziale
+function getInitialZoom() {
+  const screenW = window.innerWidth;
+  const screenH = window.innerHeight;
 
-  const initialZoom = getInitialZoom();
+  const zoomX = Math.log2(screenW / imgWidth);
+  const zoomY = Math.log2(screenH / imgHeight);
 
-  // ⭐ Parti in alto a sinistra, con zoom poco
-  map.setView([0, 0], initialZoom);
+  return Math.min(zoomX, zoomY) + 0.8;
+}
 
-  // 🚫 Impedisci di andare fuori immagine
-  map.setMaxBounds(bounds);
-  map.options.maxBoundsViscosity = 1.0;
-  
-  // Adattamento automatico se ruoti telefono
-  window.addEventListener('resize', () => {
-    map.setView([0, 0], getInitialZoom());
-  });
+const initialZoom = getInitialZoom();
+
+// 📌 Il punto NON deve essere [0,0] preciso
+// Spostiamo un po' più dentro per NON vedere mai i bordi
+const offsetY = 100; // distanza verso il basso
+const offsetX = 100; // distanza verso destra
+
+map.setView([offsetY, offsetX], initialZoom);
+
+
+// 🚫 BLOCCO DEFINITIVO dei bordi
+map.setMaxBounds(bounds);
+map.options.maxBoundsViscosity = 1.0;
+
+// Quando cerca di uscire dai limiti → riportalo subito dentro
+map.on('moveend', () => {
+  map.panInsideBounds(bounds, { animate: false });
+});
+
 
 </script>
 
