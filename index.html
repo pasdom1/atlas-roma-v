@@ -1,54 +1,72 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=10, user-scalable=no">
 <title>Mappa Roma V</title>
+
 <style>
+  * { box-sizing: border-box; }
   html, body {
     margin: 0;
+    width: 100%;
     height: 100%;
     overflow: hidden;
     background: #000;
   }
-  #wrapper {
+
+  #viewport {
     width: 100vw;
     height: 100vh;
-    touch-action: none;
     overflow: hidden;
+    touch-action: none;
+    position: relative;
   }
+
+  #map-container {
+    width: 3509px;   /* ← larghezza reale tua immagine */
+    height: 2482px;  /* ← altezza reale tua immagine */
+    position: absolute;
+    left: 0; top: 0;
+  }
+
   #map {
-    width: auto;
-    height: auto;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    touch-action: none;
   }
 </style>
 </head>
 <body>
 
-<div id="wrapper">
-  <img id="map" src="./assets/mappa.png" alt="Mappa">
+<div id="viewport">
+  <div id="map-container">
+    <img id="map" src="./assets/mappa.png">
+  </div>
 </div>
 
-<!-- Libreria Panzoom -->
 <script src="https://unpkg.com/@panzoom/panzoom/dist/panzoom.min.js"></script>
 
 <script>
-const map = document.getElementById('map');
-const wrapper = document.getElementById('wrapper');
+const mapContainer = document.getElementById('map-container');
+const viewport = document.getElementById('viewport');
 
-const panzoom = Panzoom(map, {
-  maxScale: 8,
+const panzoom = Panzoom(mapContainer, {
+  maxScale: 6,
   minScale: 1,
-  contain: 'outside',
+  contain: 'outside'
 });
 
-// Attiva pinch-zoom sul wrapper
-wrapper.addEventListener('wheel', panzoom.zoomWithWheel);
-wrapper.addEventListener('pointerdown', panzoom.handleDown, { passive: false });
-wrapper.addEventListener('touchmove', event => event.preventDefault(), { passive: false });
+// blocchiamo lo zoom / scroll del browser
+viewport.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
-// Impostiamo una scala iniziale più grande (come vuoi tu)
-panzoom.zoomTo(0, 0, 3);  // ← qui puoi cambiare il livello di zoom iniziale
+// Abilitiamo pinch/pan
+panzoom.setOptions({ pinchSpeed: 2 });
+
+// ZOOM iniziale (mostra angolo alto sinistra)
+panzoom.zoom(2); // puoi cambiare il numero come vuoi
 
 </script>
 
