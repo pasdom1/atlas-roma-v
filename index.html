@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=5">
-<title>Mappa Fullscreen</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>Mappa Roma V</title>
 
 <style>
   html, body {
@@ -13,69 +12,68 @@
     background: #000;
     height: 100%;
     overflow: hidden;
-    touch-action: none;
+    touch-action: none; /* lascia i gesti alle nostre gesture */
   }
 
   #wrapper {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    touch-action: none;
+    position: relative;
   }
 
-  #image {
+  #img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    will-change: transform;
     transform-origin: center center;
+    will-change: transform;
   }
 </style>
 </head>
 <body>
 
 <div id="wrapper">
-  <img id="image" src="/assets/mappa.png">
+  <img id="img" src="https://pasdom1.github.io/atlas-roma-v/assets/mappa.png" alt="Mappa">
 </div>
 
 <script>
 let scale = 1, lastScale = 1;
 let posX = 0, posY = 0, lastPosX = 0, lastPosY = 0;
 let startX = 0, startY = 0, startDist = 0;
-
-const img = document.getElementById("image");
+const img = document.getElementById("img");
 const wrap = document.getElementById("wrapper");
 
-function distance(e) {
+function dist(ev) {
   return Math.hypot(
-    e.touches[0].pageX - e.touches[1].pageX,
-    e.touches[0].pageY - e.touches[1].pageY
+    ev.touches[0].pageX - ev.touches[1].pageX,
+    ev.touches[0].pageY - ev.touches[1].pageY
   );
 }
 
-wrap.addEventListener("touchstart", (e) => {
-  if (e.touches.length === 2) {
-    startDist = distance(e);
+wrap.addEventListener("touchstart", ev => {
+  if (ev.touches.length === 2) {
+    startDist = dist(ev);
   } else {
-    startX = e.touches[0].clientX - lastPosX;
-    startY = e.touches[0].clientY - lastPosY;
+    startX = ev.touches[0].pageX - lastPosX;
+    startY = ev.touches[0].pageY - lastPosY;
   }
 });
 
-wrap.addEventListener("touchmove", (e) => {
-  e.preventDefault();
+wrap.addEventListener("touchmove", ev => {
+  ev.preventDefault();
 
-  if (e.touches.length === 2) {
-    let newDist = distance(e);
+  if (ev.touches.length === 2) {
+    const newDist = dist(ev);
     scale = Math.min(5, Math.max(1, lastScale * (newDist / startDist)));
   }
 
-  if (e.touches.length === 1 && scale > 1) {
-    posX = e.touches[0].clientX - startX;
-    posY = e.touches[0].clientY - startY;
+  if (ev.touches.length === 1 && scale > 1) {
+    posX = ev.touches[0].pageX - startX;
+    posY = ev.touches[0].pageY - startY;
   }
 
-  update();
+  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
 });
 
 wrap.addEventListener("touchend", () => {
@@ -88,10 +86,10 @@ wrap.addEventListener("touchend", () => {
     lastPosX = posX;
     lastPosY = posY;
   }
-  update();
+  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
 });
 
-// doppio tap per zoom
+// Doppio tap zoom
 let lastTap = 0;
 wrap.addEventListener("touchend", e => {
   const now = Date.now();
@@ -102,14 +100,10 @@ wrap.addEventListener("touchend", e => {
     } else {
       scale = lastScale = 2;
     }
-    update();
+    img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
   }
   lastTap = now;
 });
-
-function update() {
-  img.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-}
 </script>
 
 </body>
