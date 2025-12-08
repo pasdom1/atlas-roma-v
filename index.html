@@ -36,39 +36,57 @@
 
 <script>
 
-  // 📏 Misure reali della tua immagine
   const imgWidth = 3509;
   const imgHeight = 2482;
-
   const bounds = [[0, 0], [imgHeight, imgWidth]];
 
   const map = L.map('map', {
     crs: L.CRS.Simple,
     minZoom: -4,
-    maxZoom: 5,
+    maxZoom: 6,
     zoomControl: true,
-    attributionControl: false,
 
-    // 🔥 Abilito tutte le gestures su mobile e PC
     scrollWheelZoom: true,
     touchZoom: true,
     dragging: true,
     doubleClickZoom: true,
-    boxZoom: true,
-    tap: false
+    tap: false,
+
+    // ❌ Impedisce a Leaflet di auto-centrare la mappa
+    center: null,
+    zoom: null
   });
 
-  // Inserisco l’immagine come mappa
+  // Aggiungo l’immagine come layer
   L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
-// Imposta zoom iniziale e posizione sull’angolo alto sinistra
-map.setView([0, 0], 3); // <<< Modifica 2 se serve più o meno zoom
 
-// Blocca i bordi per non vedere grigio fuori immagine
-map.setMaxBounds(bounds);
-map.options.maxBoundsViscosity = 1.0;
+  // 🔥 Calcolo lo zoom necessario per RIEMPIRE lo schermo
+  const screenW = window.innerWidth;
+  const screenH = window.innerHeight;
+
+  const zoomX = Math.log2(screenW / imgWidth);
+  const zoomY = Math.log2(screenH / imgHeight);
+
+  // Il più grande dei due per non avere grigio
+  const bestZoom = Math.max(zoomX, zoomY) + 1.2; // incrementiamo per zoom iniziale
+
+
+  // 🌟 FINALMENTE: start in alto a sinistra, zoom pieno
+  map.setView([0, 0], bestZoom);
+
+  // Impedisci di trascinare oltre l’immagine
+  map.setMaxBounds(bounds);
+  map.options.maxBoundsViscosity = 1.0;
+
+
+  // 📌 Ricalcola se ruoti il telefono
+  window.addEventListener('resize', () => {
+    map.setView([0, 0], bestZoom);
+  });
 
 </script>
+
 
 </body>
 </html>
