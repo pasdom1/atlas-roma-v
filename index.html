@@ -11,6 +11,7 @@
   html, body { margin: 0; height: 100%; }
   #map { width: 100%; height: 100%; background: black; }
 </style>
+
 </head>
 <body>
 
@@ -37,43 +38,116 @@
     tap: false
   });
 
-  // Immagine come mappa
   L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
-  // Calcolo zoom iniziale per NON mostrare bordi neri
-// Calcolo zoom iniziale
-function getInitialZoom() {
-  const screenW = window.innerWidth;
-  const screenH = window.innerHeight;
+  function getInitialZoom() {
+    const screenW = window.innerWidth;
+    const screenH = window.innerHeight;
+    const zoomX = Math.log2(screenW / imgWidth);
+    const zoomY = Math.log2(screenH / imgHeight);
+    return Math.min(zoomX, zoomY) + 0.8;
+  }
 
-  const zoomX = Math.log2(screenW / imgWidth);
-  const zoomY = Math.log2(screenH / imgHeight);
+  const initialZoom = getInitialZoom();
+  const offsetY = 100;
+  const offsetX = 100;
+  map.setView([offsetY, offsetX], initialZoom);
 
-  return Math.min(zoomX, zoomY) + 0.8;
-}
-
-const initialZoom = getInitialZoom();
-
-// 📌 Il punto NON deve essere [0,0] preciso
-// Spostiamo un po' più dentro per NON vedere mai i bordi
-const offsetY = 100; // distanza verso il basso
-const offsetX = 100; // distanza verso destra
-
-map.setView([offsetY, offsetX], initialZoom);
+  map.setMaxBounds(bounds);
+  map.options.maxBoundsViscosity = 1.0;
+  map.on('moveend', () => map.panInsideBounds(bounds, { animate: false }));
 
 
-// 🚫 BLOCCO DEFINITIVO dei bordi
-map.setMaxBounds(bounds);
-map.options.maxBoundsViscosity = 1.0;
+  // ---------------------------------------------------
+  // 📍 ICON SCALING
+  // ---------------------------------------------------
+  let baseSize = 22; // icone più piccole di default
 
-// Quando cerca di uscire dai limiti → riportalo subito dentro
-map.on('moveend', () => {
-  map.panInsideBounds(bounds, { animate: false });
-});
+  function getIcon(iconUrl, zoom) {
+    const scale = Math.max(0.7, zoom * 0.22); 
+    const size = baseSize * scale;
 
+    return L.icon({
+      iconUrl,
+      iconSize: [size, size],
+      iconAnchor: [size/2, size/2],
+      popupAnchor: [0, -size/2]
+    });
+  }
+
+  const iconURLs = [
+    './assets/icons/icon1.png',
+    './assets/icons/icon2.png',
+    './assets/icons/icon3.png'
+  ];
+
+  let allMarkers = [];
+
+  function updateMarkerIcons() {
+    const zoom = map.getZoom();
+    allMarkers.forEach(m => {
+      m.marker.setIcon(getIcon(m.iconUrl, zoom));
+    });
+  }
+
+
+  // ---------------------------------------------------
+  // 📌 Coordinate LAT/LON → coordinate pixel sulla mappa
+  // ⚠️ Temporaneamente una stima (da correggere)
+  // ---------------------------------------------------
+  function latLonToPixel(lat, lon) {
+    const px = (lon - 12.53) * 45000;
+    const py = (41.89 - lat) * 60000;
+    return [py, px];
+  }
+
+
+  // ✨ PRIMI 3 PUNTI DA OGNI PDF
+
+  const ptsEsteriorita = [
+    { name: "Via Benedetto Bordone, 25", lat: 41.88146, lon: 12.54130 },
+    { name: "Via Oreste Salomone, 7", lat: 41.87839, lon: 12.54499 },
+    { name: "Via Carlo della Rocca, 30", lat: 41.87798, lon: 12.54376 }
+  ];
+
+  const ptsInteriorita = [
+    { name: "Via Amedeo Cencelli, 23", lat: 41.87898, lon: 12.54314 },
+    { name: "Via Guido Cora, 21", lat: 41.88140, lon: 12.54107 },
+    { name: "Via Carlo della Rocca, 23", lat: 41.87845, lon: 12.54417 }
+  ];
+
+  const ptsMatrice = [
+    { name: "Piazza Copernico, 10", lat: 41.88608, lon: 12.53275 },
+    { name: "Via Pomponio Mela, 1", lat: 41.88598, lon: 12.53205 },
+    { name: "Via Pomponio Mela, 2", lat: 41.88568, lon: 12.53235 }
+  ];
+
+
+  const groups = [
+    { data: ptsEsteriorita, icon: iconURLs[0] },
+    { data: ptsInteriorita, icon: iconURLs[1] },
+    { data: ptsMatrice, icon: iconURLs[2] }
+  ];
+
+
+  // ➕ Aggiunta marker alla mappa
+  groups.forEach((g, gi) => {
+    g.data.forEach(p => {
+      const [y, x] = latLonToPixel(p.lat, p.lon);
+      const marker = L.marker([y, x], {
+        icon: getIcon(iconURLs[gi], map.getZoom())
+      }).addTo(map).bindPopup(p.name);
+
+      allMarkers.push({
+        iconUrl: iconURLs[gi],
+        marker: marker
+      });
+    });
+  });
+
+  map.on('zoomend', updateMarkerIcons);
 
 </script>
-
 
 </body>
 </html>
