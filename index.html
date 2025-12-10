@@ -19,37 +19,56 @@
     background: black;
   }
 
-  /* 📌 Legenda molto più grande e cliccabile per cellulari */
+  /* 📌 Legenda chiudibile */
   .legend {
     position: absolute;
     top: 10px;
     right: 10px;
     z-index: 20000;
-    background: rgba(255,255,255,0.93);
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
+    background: rgba(255,255,255,0.95);
+    padding: 8px 12px;
+    border-radius: 12px;
     box-shadow: 0 0 8px rgba(0,0,0,0.4);
+    font-size: 16px;
+    transition: all 0.25s ease;
+    overflow: hidden;
     touch-action: manipulation;
+  }
+
+  .legend.minimized {
+    width: 45px;
+    height: 45px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .legend .title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+    cursor: pointer;
   }
 
   .legend span {
     display: block;
-    padding: 8px 0;
-    margin-top: 4px;
-    border-radius: 5px;
-  }
-
-  /* 🔥 Quando un layer è attivo → evidenziarlo */
-  .active-layer {
-    background: rgba(0,150,255,0.30);
-    border-left: 4px solid #0078ff;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-size: 15px;
   }
 
   .legend span:hover {
-    background: rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.10);
   }
+
+  /* 🔵 Layer attivo */
+  .active-layer {
+    background: rgba(0,150,255,0.25) !important;
+    border-left: 4px solid #0099ff;
+  }
+
 </style>
 </head>
 
@@ -57,92 +76,69 @@
 
 <div id="map"></div>
 
-<!-- 📌 Legenda touch-friendly -->
-<div class="legend" id="legendBox">
-  <b>Filtri</b>
-  <span id="legE"></span>
-  <span id="legI"></span>
-  <span id="legM"></span>
+<!-- 📌 Legenda chiudibile -->
+<div class="legend minimized" id="legendBox">
+  <span class="title" id="legendToggle">≡</span>
+  <div id="legendItems" style="display:none;">
+    <span id="legE"></span>
+    <span id="legI"></span>
+    <span id="legM"></span>
+  </div>
 </div>
 
-<!-- 📌 Dati -->
 <script src="./js/data.js"></script>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
 // --------------------------------------------------
-// Mappa raster
+// Mappa raster + zoom migliorato
 // --------------------------------------------------
 const imgWidth = 3509;
 const imgHeight = 2482;
 const bounds = [[0,0],[imgHeight,imgWidth]];
 
-const map = L.map('map', {
-  crs: L.CRS.Simple,
-  minZoom: -4,
-  maxZoom: 4,
-  zoomControl: true,
-  attributionControl: false
-});
-
+const map = L.map('map', { crs:L.CRS.Simple, minZoom:-4, maxZoom:4, attributionControl:false });
 L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
 
-/* 📌 Zoom iniziale ottimizzato per smartphone */
 function setInitialView() {
   const zoom = map.getBoundsZoom(bounds, true) - 1.2;
   map.setView([250,250], zoom);
 }
 setInitialView();
-
 map.setMaxBounds(bounds);
 
-// --------------------------------------------------
-// Trasformazione LAT/LON -> PIXEL
+
 // --------------------------------------------------
 function latLonToPixel(lat, lon) {
-  const x = 54528.2708239365 * lon 
-          - 5264.35641131556 * lat 
-          - 462269.595382222;
-  const y = 22853.1955817737 * lon 
-          + 38484.5147246228 * lat 
-          - 1897326.38061588;
+  const x = 54528.2708239365 * lon - 5264.35641131556 * lat - 462269.595382222;
+  const y = 22853.1955817737 * lon + 38484.5147246228 * lat - 1897326.38061588;
   return [y, x];
 }
 
-// --------------------------------------------------
-// Icone — molto piccole allo zoom minimo
+
 // --------------------------------------------------
 let allMarkers = [];
-
-const iconURLs = [
-  './assets/icons/icon1.png',
-  './assets/icons/icon2.png',
-  './assets/icons/icon3.png'
-];
+const iconURLs = ['./assets/icons/icon1.png','./assets/icons/icon2.png','./assets/icons/icon3.png'];
 
 function getIcon(iconUrl, zoom) {
-  const base = 12; // Ancora più piccole di prima
+  const base = 13;
   const scale = Math.max(0.45, zoom * 0.18);
   const size = base * scale;
   return L.icon({
     iconUrl,
-    iconSize: [size, size],
-    iconAnchor: [size/2, size/2],
-    popupAnchor: [0, -size/2]
+    iconSize: [size,size],
+    iconAnchor: [size/2,size/2],
+    popupAnchor: [0,-size/2]
   });
 }
 
-map.on("zoomend", () => {
-  const zoom = map.getZoom();
-  allMarkers.forEach(m=>{
-    m.marker.setIcon(getIcon(m.iconUrl, zoom));
-  });
+map.on("zoomend",()=>{
+  const z=map.getZoom();
+  allMarkers.forEach(m=>m.marker.setIcon(getIcon(m.iconUrl,z)));
 });
 
-// --------------------------------------------------
-// Layers dataset
+
 // --------------------------------------------------
 const groupE = L.layerGroup();
 const groupI = L.layerGroup();
@@ -154,24 +150,20 @@ const datasets = [
   { group: groupM, data: DATA_M, icon: iconURLs[2], legId:"legM", legName:"Matrice" }
 ];
 
-// --------------------------------------------------
-// Preparo marker MA NON li aggiungo ancora
-// --------------------------------------------------
-datasets.forEach(ds => {
+datasets.forEach(ds=>{
   ds.data.forEach(p=>{
     const [y,x]=latLonToPixel(p.lat,p.lon);
-    const m=L.marker([y,x],{
-      icon:getIcon(ds.icon,map.getZoom())
-    }).bindPopup(`<b>${p.name}</b><br>${p.type}`);
-
-    ds.group.addLayer(m);
-    allMarkers.push({marker:m,iconUrl:ds.icon});
+    const marker=L.marker([y,x],{ icon:getIcon(ds.icon,map.getZoom()) })
+      .bindPopup(`<b>${p.name}</b><br>${p.type}`);
+    ds.group.addLayer(marker);
+    allMarkers.push({marker,iconUrl:ds.icon});
   });
 });
 
-// --------------------------------------------------
-// Legenda click per mostrare/nascondere
-// --------------------------------------------------
+
+// --------------------
+// Legenda logica
+// --------------------
 let activeLayer = null;
 
 function renderLegend() {
@@ -185,14 +177,30 @@ function renderLegend() {
   }
 }
 
-datasets.forEach(ds=>{
-  document.getElementById(ds.legId).addEventListener("click", ()=>{
+// Toggle legenda aperta/chiusa
+document.getElementById("legendToggle").addEventListener("click", ()=> {
+  const box=document.getElementById("legendBox");
+  const items=document.getElementById("legendItems");
 
-    document.querySelectorAll(".legend span").forEach(span=>{
-      span.classList.remove("active-layer");
-    });
+  if(box.classList.contains("minimized")){
+    box.classList.remove("minimized");
+    items.style.display="block";
+    document.getElementById("legendToggle").innerHTML="Filtri";
+  } else {
+    box.classList.add("minimized");
+    items.style.display="none";
+    document.getElementById("legendToggle").innerHTML="≡";
+  }
+});
+
+// Click filtri
+datasets.forEach(ds=>{
+  document.getElementById(ds.legId).addEventListener("click",()=>{
+
+    document.querySelectorAll(".legend span").forEach(s=>s.classList.remove("active-layer"));
 
     if(activeLayer===ds){
+      // Nasconde tutti
       datasets.forEach(l=>map.removeLayer(l.group));
       activeLayer=null;
     } else {
