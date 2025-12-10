@@ -2,152 +2,189 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, user-scalable=yes">
 <title>Mappa Interattiva</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
-  html, body { margin: 0; height: 100%; }
-  #map { width: 100%; height: 100%; background: black; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+    background: black;
+  }
+  .legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10000;
+    background: rgba(255,255,255,0.90);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .legend span {
+    display: block;
+    padding: 3px 0;
+  }
 </style>
-
 </head>
+
 <body>
 
 <div id="map"></div>
 
+<div class="legend" id="legendBox">
+  <b>Legenda (tocca per mostrare)</b><br>
+  <span id="legE"></span>
+  <span id="legI"></span>
+  <span id="legM"></span>
+</div>
+
+<script src="./js/data.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-  const imgWidth = 3509;
-  const imgHeight = 2482;
-  const bounds = [[0, 0], [imgHeight, imgWidth]];
+// --------------------------------------------------
+// MAPPA RASTER
+// --------------------------------------------------
+const imgWidth = 3509;
+const imgHeight = 2482;
+const bounds = [[0,0],[imgHeight,imgWidth]];
 
-  const map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -3,
-    maxZoom: 4,
-    zoomControl: true,
-    attributionControl: false,
-    scrollWheelZoom: true,
-    touchZoom: true,
-    dragging: true,
-    doubleClickZoom: true,
-    tap: false
+const map = L.map('map', {
+  crs: L.CRS.Simple,
+  minZoom: -3,
+  maxZoom: 4,
+  zoomControl: true,
+  attributionControl: false
+});
+
+L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
+map.setView([100,100], -1);
+map.setMaxBounds(bounds);
+
+
+// --------------------------------------------------
+// TRASFORMAZIONE LAT/LON → PIXEL
+// --------------------------------------------------
+function latLonToPixel(lat, lon) {
+  const x = 54528.2708239365 * lon 
+          - 5264.35641131556 * lat 
+          - 462269.595382222;
+
+  const y = 22853.1955817737 * lon 
+          + 38484.5147246228 * lat 
+          - 1897326.38061588;
+
+  return [y, x];
+}
+
+
+// --------------------------------------------------
+// ICONE MOLTO PICCOLE ALLO ZOOM MINIMO
+// --------------------------------------------------
+let allMarkers = [];
+
+const iconURLs = [
+  './assets/icons/icon1.png',
+  './assets/icons/icon2.png',
+  './assets/icons/icon3.png'
+];
+
+function getIcon(iconUrl, zoom) {
+  const base = 14; // ICONA SUPER PICCOLA ALL'INIZIO
+  const scale = Math.max(0.45, zoom * 0.18);
+  const size = base * scale;
+
+  return L.icon({
+    iconUrl,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2]
   });
+}
 
-  L.imageOverlay('./assets/mappa.png', bounds).addTo(map);
-
-  function getInitialZoom() {
-    const screenW = window.innerWidth;
-    const screenH = window.innerHeight;
-    const zoomX = Math.log2(screenW / imgWidth);
-    const zoomY = Math.log2(screenH / imgHeight);
-    return Math.min(zoomX, zoomY) + 0.8;
-  }
-
-  const initialZoom = getInitialZoom();
-  const offsetY = 100;
-  const offsetX = 100;
-  map.setView([offsetY, offsetX], initialZoom);
-
-  map.setMaxBounds(bounds);
-  map.options.maxBoundsViscosity = 1.0;
-  map.on('moveend', () => map.panInsideBounds(bounds, { animate: false }));
+map.on("zoomend", () => {
+  const zoom = map.getZoom();
+  allMarkers.forEach(m => {
+    m.marker.setIcon(getIcon(m.iconUrl, zoom));
+  });
+});
 
 
-  // ---------------------------------------------------
-  // 📍 ICON SCALING
-  // ---------------------------------------------------
-  let baseSize = 22; // icone più piccole di default
+// --------------------------------------------------
+// LAYERS (vuoti all'inizio)
+// --------------------------------------------------
+const groupE = L.layerGroup();
+const groupI = L.layerGroup();
+const groupM = L.layerGroup();
 
-  function getIcon(iconUrl, zoom) {
-    const scale = Math.max(0.7, zoom * 0.22); 
-    const size = baseSize * scale;
-
-    return L.icon({
-      iconUrl,
-      iconSize: [size, size],
-      iconAnchor: [size/2, size/2],
-      popupAnchor: [0, -size/2]
-    });
-  }
-
-  const iconURLs = [
-    './assets/icons/icon1.png',
-    './assets/icons/icon2.png',
-    './assets/icons/icon3.png'
-  ];
-
-  let allMarkers = [];
-
-  function updateMarkerIcons() {
-    const zoom = map.getZoom();
-    allMarkers.forEach(m => {
-      m.marker.setIcon(getIcon(m.iconUrl, zoom));
-    });
-  }
+const datasets = [
+  { group: groupE, data: DATA_E, icon: iconURLs[0], legId:"legE", legName:"Esternalità" },
+  { group: groupI, data: DATA_I, icon: iconURLs[1], legId:"legI", legName:"Interiorità" },
+  { group: groupM, data: DATA_M, icon: iconURLs[2], legId:"legM", legName:"Matrice" }
+];
 
 
-  // ---------------------------------------------------
-  // 📌 Coordinate LAT/LON → coordinate pixel sulla mappa
-  // ⚠️ Temporaneamente una stima (da correggere)
-  // ---------------------------------------------------
-  function latLonToPixel(lat, lon) {
-    const px = (lon - 12.53) * 45000;
-    const py = (41.89 - lat) * 60000;
-    return [py, px];
-  }
+// --------------------------------------------------
+// CREA MARKER (ma NON li aggiunge ancora)
+// --------------------------------------------------
+datasets.forEach(ds => {
+  ds.data.forEach(p => {
+    const [y,x] = latLonToPixel(p.lat, p.lon);
+
+    const marker = L.marker([y,x], {
+      icon: getIcon(ds.icon, map.getZoom())
+    }).bindPopup(`<b>${p.name}</b><br>${p.type}`);
+
+    ds.group.addLayer(marker);
+    allMarkers.push({ marker, iconUrl: ds.icon });
+  });
+});
 
 
-  // ✨ PRIMI 3 PUNTI DA OGNI PDF
+// --------------------------------------------------
+// LEGENDA INTERATTIVA (mostra/nasconde layer)
+// --------------------------------------------------
+let activeLayer = null;
 
-  const ptsEsteriorita = [
-    { name: "Via Benedetto Bordone, 25", lat: 41.88146, lon: 12.54130 },
-    { name: "Via Oreste Salomone, 7", lat: 41.87839, lon: 12.54499 },
-    { name: "Via Carlo della Rocca, 30", lat: 41.87798, lon: 12.54376 }
-  ];
+function refreshLegend() {
+  datasets.forEach(ds => {
+    document.getElementById(ds.legId).innerHTML =
+      `<img src="${ds.icon}" width="12"> ${ds.legName}: ${ds.data.length}`;
+  });
+}
 
-  const ptsInteriorita = [
-    { name: "Via Amedeo Cencelli, 23", lat: 41.87898, lon: 12.54314 },
-    { name: "Via Guido Cora, 21", lat: 41.88140, lon: 12.54107 },
-    { name: "Via Carlo della Rocca, 23", lat: 41.87845, lon: 12.54417 }
-  ];
+function setupLegendClick() {
+  datasets.forEach(ds => {
+    document.getElementById(ds.legId).addEventListener("click", () => {
 
-  const ptsMatrice = [
-    { name: "Piazza Copernico, 10", lat: 41.88608, lon: 12.53275 },
-    { name: "Via Pomponio Mela, 1", lat: 41.88598, lon: 12.53205 },
-    { name: "Via Pomponio Mela, 2", lat: 41.88568, lon: 12.53235 }
-  ];
+      if (activeLayer === ds) {
+        // Nascondi tutti
+        datasets.forEach(d => map.removeLayer(d.group));
+        activeLayer = null;
+      } else {
+        // Mostra SOLO questo
+        datasets.forEach(d => map.removeLayer(d.group));
+        map.addLayer(ds.group);
+        activeLayer = ds;
+      }
 
-
-  const groups = [
-    { data: ptsEsteriorita, icon: iconURLs[0] },
-    { data: ptsInteriorita, icon: iconURLs[1] },
-    { data: ptsMatrice, icon: iconURLs[2] }
-  ];
-
-
-  // ➕ Aggiunta marker alla mappa
-  groups.forEach((g, gi) => {
-    g.data.forEach(p => {
-      const [y, x] = latLonToPixel(p.lat, p.lon);
-      const marker = L.marker([y, x], {
-        icon: getIcon(iconURLs[gi], map.getZoom())
-      }).addTo(map).bindPopup(p.name);
-
-      allMarkers.push({
-        iconUrl: iconURLs[gi],
-        marker: marker
-      });
     });
   });
+}
 
-  map.on('zoomend', updateMarkerIcons);
+refreshLegend();
+setupLegendClick();
 
 </script>
-
 </body>
 </html>
