@@ -1,20 +1,127 @@
-// ========== Esteriorità ==========
+// =====================================================================
+// Esteriorità (PDF 1)  — Abitazioni
+// =====================================================================
 const DATA_E = [
-  { name: "Via Benedetto Bordone, 25", type:"Abitazione", lat:41.88146, lon:12.54130 },
-  { name: "Via Oreste Salomone, 7", type:"Abitazione", lat:41.87839, lon:12.54499 },
-  { name: "Via Carlo della Rocca, 30", type:"Abitazione", lat:41.87798, lon:12.54376 }
+  // tutti i punti del PDF 1
+  { name:"Via Benedetto Bordone, 25", type:"Abitazione", lat:41.88145967778677, lon:12.54130276664192 },
+  { name:"Via Oreste Salomone, 7", type:"Abitazione", lat:41.878393890301496, lon:12.544994379118185 },
+  { name:"Via Carlo della Rocca, 30", type:"Abitazione", lat:41.87797841915094, lon:12.543768983710697 },
+  { name:"Via Francesco Baracca, 50", type:"Abitazione", lat:41.87900216855717, lon:12.543749793870266 },
+  { name:"Via Francesco Baracca , 48", type:"Abitazione", lat:41.87900021606755, lon:12.543689047137462 },
+  { name:"Via Francesco Baracca, 35", type:"Abitazione", lat:41.87910113572444, lon:12.543746615653358 },
+  { name:"Via Francesco Baracca, 33", type:"Abitazione", lat:41.87910456498213, lon:12.543705089173516 },
+  { name:"Via Francesco Baracca, 14", type:"Abitazione", lat:41.8791010450485, lon:12.542583856999434 },
+  { name:"Via Francesco Baracca, 9", type:"Abitazione", lat:41.87920192591254, lon:12.542663293564194 },
+  { name:"Via Francesco Baracca, 7", type:"Abitazione", lat:41.87922008753029, lon:12.542496789566714 },
+  { name:"Via di Tor Pignattara, 50", type:"Abitazione", lat:41.8789563945932, lon:12.541815489810963 },
+  { name:"Via di Tor Pignattara, 54", type:"Abitazione", lat:41.87885883509042, lon:12.541805783667865 },
+  { name:"Via di Tor Pignattara, 64", type:"Abitazione", lat:41.87866215614161, lon:12.541767525850874 },
+  { name:"Via di Tor Pignattara, 64", type:"Abitazione", lat:41.87874876322237, lon:12.541830307052827 },
+  { name:"Via di Tor Pignattara, 85", type:"Abitazione", lat:41.87796179322569, lon:12.541942265893974 },
+  { name:"Via di Tor Pignattara, 88", type:"Abitazione", lat:41.87790775892671, lon:12.54164995135718 },
+  { name:"Via di Tor Pignattara, 96", type:"Abitazione", lat:41.87779501073876, lon:12.541619751063426 },
+  { name:"Via di Tor Pignattara, 107", type:"Abitazione", lat:41.87749484271368, lon:12.54188440247705 },
+  { name:"Via di Tor Pignattara, 128", type:"Abitazione", lat:41.87683493624311, lon:12.541491059856524 },
+  { name:"Via Galeazzo Alessi, 240", type:"Abitazione", lat:41.8792670310309, lon:12.540942173507126 },
+  { name:"Via Gabrio Serbelloni, 11", type:"Abitazione", lat:41.880226732911076, lon:12.54132135655156 },
+  { name:"Via di Tor Pignattara, 34", type:"Abitazione", lat:41.87955033081609, lon:12.541940015194294 },
+  { name:"Via di Tor Pignattara, 38", type:"Abitazione", lat:41.879461180390905, lon:12.541922086198603 },
+  { name:"Via della Maranella, 16", type:"Abitazione", lat:41.88104670328725, lon:12.542435874080038 },
+  { name:"Via della Maranella, 20", type:"Abitazione", lat:41.88109555898012, lon:12.542442833590012 },
+  { name:"Via della Maranella, 17", type:"Abitazione", lat:41.88119880863548, lon:12.542184573478268 },
+  { name:"Via della Maranella, 25", type:"Abitazione", lat:41.881382598786715, lon:12.542134388003143 },
+  { name:"Via della Maranella, 32", type:"Abitazione", lat:41.88130314731318, lon:12.54243642277221 },
+  { name:"Via della Maranella, 36", type:"Abitazione", lat:41.881470761663365, lon:12.542448889625355 },
+  { name:"Via Eratostene, 9", type:"Abitazione", lat:41.8816653096435, lon:12.541978231245961 },
+  { name:"Via della Maranella, 48", type:"Abitazione", lat:41.88189367598395, lon:12.542488901809003 },
+  { name:"Via della Maranella, 53", type:"Abitazione", lat:41.8825933838429, lon:12.542109574770368 },
+  { name:"Via della Maranella, 77", type:"Abitazione", lat:41.88306542325757, lon:12.542111802977825 },
+  { name:"Via della Maranella, 79", type:"Abitazione", lat:41.8831486479605, lon:12.542181407239006 },
+  { name:"Via della Maranella, 119", type:"Abitazione", lat:41.884439069356695, lon:12.542109559507619 },
+  { name:"Via Bartolomeo Perestrello, 10", type:"Abitazione", lat:41.88567834061155, lon:12.543180433535777 },
+  { name:"Via Casilina, 447", type:"Abitazione", lat:41.88069425129906, lon:12.54176374683505 },
+  { name:"Via Casilina, 439", type:"Abitazione", lat:41.880841903169596, lon:12.541483348125618 },
+  { name:"Via Benedetto Bordoni, 5", type:"Abitazione", lat:41.8809991988835, lon:12.541239816656983 },
+  { name:"Via Benedetto Bordoni, 22", type:"Abitazione", lat:41.88118546511668, lon:12.541536093643318 },
+  { name:"Via Benedetto Bordoni, 52", type:"Abitazione", lat:41.88178052425092, lon:12.541524634189601 },
+  { name:"Via Eratostene, 34", type:"Abitazione", lat:41.88186825755252, lon:12.5410946274045 },
+  { name:"Via Eratostene, 44", type:"Abitazione", lat:41.881940376102214, lon:12.540852971312676 },
+  { name:"Via dell’Acqua Bullicante, 65", type:"Abitazione", lat:41.88238534768681, lon:12.543116004953477 },
+  { name:"Via Bartolomeo Perestrello, 2", type:"Abitazione", lat:41.8855301448217, lon:12.542471922793716 },
+  { name:"Via di Tor Pignattara, 113", type:"Abitazione", lat:41.87735844141529, lon:12.541838554395135 },
+  { name:"Via dell’Acqua Bullicante, 42", type:"Abitazione", lat:41.883232975343, lon:12.543382002745192 },
+  { name:"Via Mario Baratta, 12", type:"Abitazione", lat:41.88212466997814, lon:12.541733013756193 },
+  { name:"Via Eratostene, 26", type:"Abitazione", lat:41.88185293320081, lon:12.54121386375255 },
+  { name:"Via Bartolomeo Perestrello, 19 A", type:"Abitazione", lat:41.88516316980226, lon:12.54216092061359 },
+  { name:"Via di Tor Pignattara, 12", type:"Abitazione", lat:41.879963475777224, lon:12.542001484869315 },
+  { name:"Via di Tor Pignattara, 95", type:"Abitazione", lat:41.87767082467395, lon:12.541940558467676 }
 ];
 
-// ========== Interiorità ==========
+// =====================================================================
+// Interiorità (PDF 2) — Luoghi religiosi / edicole
+// =====================================================================
 const DATA_I = [
-  { name: "Via Amedeo Cencelli, 23", type:"OM Hindu Mandir", lat:41.87898, lon:12.54314 },
-  { name: "Via Guido Cora, 21", type:"Tempio Hindu", lat:41.88140, lon:12.54107 },
-  { name: "Via Carlo della Rocca, 23", type:"Islam", lat:41.87845, lon:12.54417 }
+  { name:"Via Amedeo Cencelli, 23", type:"OM Hindu Mandir", lat:41.878975642550145, lon:12.543141301385248 },
+  { name:"Via Guido Cora, 21", type:"Tempio Hindu", lat:41.88140398407288, lon:12.541077916221736 },
+  { name:"Via Carlo della Rocca, 23", type:"Moschea", lat:41.87845255931994, lon:12.544179075008056 },
+  { name:"Via Lodovico Pavoni, 43", type:"Moschea", lat:41.88290461962928, lon:12.54175734202348 },
+  { name:"Via Posidonio, 10", type:"Moschea", lat:41.88613680120078, lon:12.53542019768045 },
+  { name:"Via Posidonio, 14", type:"Moschea", lat:41.886088466010435, lon:12.535430916650665 },
+  { name:"Via Gabrio Serbelloni, 25", type:"Moschea", lat:41.880042067796865, lon:12.541309383742428 },
+  { name:"Via Antonio Tempesta, 100", type:"Moschea", lat:41.88357640821766, lon:12.54052629456601 },
+  { name:"Via della Maranella", type:"Moschea", lat:41.88236848163851, lon:12.542452181640869 },
+  { name:"Via di Villa Lauricella, 12", type:"Tempio Buddhista", lat:41.89142827675512, lon:12.537366455757 },
+  { name:"Via Emanuele Repetti, 9", type:"Assemblee di Dio", lat:41.884430401282486, lon:12.533379357476543 },
+  { name:"Via della Maranella, 70", type:"Chiesa Evangelica", lat:41.88237662817292, lon:12.542428982812268 },
+  { name:"Via Benedetto Bordone, 50", type:"Chiesa Evangelica Filippina", lat:41.88146785528857, lon:12.541560367087614 },
+  { name:"Via Anacapri, 26", type:"Chiesa Evangelica Etiope", lat:41.890136483626655, lon:12.543433360390013 },
+  { name:"Piazza dei Geografi, 15", type:"Chiesa", lat:41.882999822853144, lon:12.540106767142412 },
+  { name:"Via Filarete, 227", type:"Chiesa", lat:41.876425689819435, lon:12.539799954507926 },
+  { name:"Via Luchino dal Verme, 50", type:"Chiesa", lat:41.88907185459407, lon:12.537776111995761 },
+  { name:"Viale dell’Acquedotto Alessandrino", type:"Cappella", lat:41.876481113344056, lon:12.546491527348152 },
+  { name:"Via della Maranella, 74", type:"Edicola", lat:41.88261334686473, lon:12.54241812247701 },
+  { name:"Via Casilina, 416", type:"Edicola", lat:41.87970358401194, lon:12.542941170556904 },
+  { name:"Via di Torpignattara, 41", type:"Edicola", lat:41.879154628439885, lon:12.542124328349352 },
+  { name:"Via Gabrio Serbelloni, 42", type:"Edicola", lat:41.879398017451415, lon:12.541046573050812 },
+  { name:"Via Lodovico Pavoni, 65", type:"Edicola", lat:41.88326249754055, lon:12.541725096551973 },
+  { name:"Largo dei Savorgnan, 14", type:"Edicola", lat:41.87835291471337, lon:12.537590231963469 },
+  { name:"Via di Portonaccio, 568", type:"Edicola", lat:41.893017033446924, lon:12.541619138864368 }
 ];
 
-// ========== Matrice ==========
+// =====================================================================
+// Matrice (PDF 3) — Zona Niccolò Copernico
+// =====================================================================
 const DATA_M = [
-  { name: "Piazza Copernico, 10 La Torretta", type:"Residenziale", lat:41.88608, lon:12.53275 },
-  { name: "Via Pomponio Mela, 1", type:"Residenziale", lat:41.88598, lon:12.53205 },
-  { name: "Via Pomponio Mela, 2", type:"Residenziale", lat:41.88568, lon:12.53235 }
+  { name:"Piazza Niccolò Copernico, 10", type:"Residenziale", lat:41.88608216109512, lon:12.532753782514751 },
+  { name:"Via Pomponio Mela, 1", type:"Residenziale", lat:41.885981237749036, lon:12.53205065817827 },
+  { name:"Via Pomponio Mela, 2", type:"Residenziale", lat:41.88568440871876, lon:12.532355868063286 },
+  { name:"Via Marco Vincenzo Coronelli, 2", type:"Residenziale", lat:41.8855786039612, lon:12.53202264341892 },
+  { name:"Via Marco Vincenzo Coronelli, 4", type:"Residenziale", lat:41.885599184270866, lon:12.5326003275345 },
+  { name:"Via Marco Vincenzo Coronelli, 11", type:"Residenziale", lat:41.88550563248513, lon:12.533039490224462 },
+  { name:"Via Biagio Terzi,10", type:"Residenziale", lat:41.88538230395029, lon:12.532932829264766 },
+  { name:"Via Pausania, 25", type:"Residenziale", lat:41.88537457851152, lon:12.533464185622476 },
+  { name:"Via di Villa Serventi, 5", type:"Residenziale", lat:41.88518058830713, lon:12.530428804332033 },
+  { name:"Via Martino di Tiro, 2", type:"Residenziale", lat:41.884574546856406, lon:12.530804435096318 },
+  { name:"Via Martino di Tiro, 5", type:"Residenziale", lat:41.88470123522361, lon:12.531006389556163 },
+  { name:"Via Martino di Tiro, 8", type:"Residenziale", lat:41.884574546856406, lon:12.530804435096318 },
+  { name:"Via Martino di Tiro, 10", type:"Residenziale", lat:41.884430425504945, lon:12.531044078644769 },
+  { name:"Via Martino di Tiro, 20", type:"Residenziale", lat:41.88408608569013, lon:12.531622091868005 },
+  { name:"Via Ignazio Danti, 2", type:"Residenziale", lat:41.88542829253727, lon:12.53178260661807 },
+  { name:"Via Ignazio Danti, 17", type:"Residenziale", lat:41.88399226348748, lon:12.532308641077451 },
+  { name:"Via Fra Mauro, 9", type:"Residenziale", lat:41.88616086001756, lon:12.533118408571477 },
+  { name:"Via Fra Mauro, 7", type:"Residenziale", lat:41.88692608261406, lon:12.534189975678197 },
+  { name:"Via Giovanni Marinelli, 4", type:"Residenziale", lat:41.8868828165092, lon:12.533833627322517 },
+  { name:"Via Cosmo Egiziano, 6-8", type:"Residenziale", lat:41.88723725144031, lon:12.532075505404086 },
+  { name:"Via Adriano Balbi, 1", type:"Residenziale", lat:41.88630132869618, lon:12.531653159462401 },
+  { name:"Via Adriano Balbi, 5", type:"Residenziale", lat:41.886518616507644, lon:12.531626505784578 },
+  { name:"Via Adriano Balbi, 6", type:"Residenziale", lat:41.88655919042899, lon:12.53191849699381 },
+  { name:"Via Adriano Balbi, 2c", type:"Residenziale", lat:41.886341036799294, lon:12.531953929490196 },
+  { name:"Via Adriano Balbi, 14", type:"Residenziale", lat:41.88733551624298, lon:12.531755519270872 },
+  { name:"Via Adriano Balbi, 15", type:"Residenziale", lat:41.88738184044214, lon:12.531517516691995 },
+  { name:"Via Adriano Balbi, 18", type:"Residenziale", lat:41.88755405714822, lon:12.531822462217749 },
+  { name:"Via Fazio degli Uberti, 7", type:"Residenziale", lat:41.8866824413328, lon:12.531217079829245 },
+  { name:"Via Fazio degli Uberti, 9", type:"Residenziale", lat:41.88646044398987, lon:12.530855341846813 },
+  { name:"Via Fazio degli Uberti, 10", type:"Residenziale", lat:41.886653256893695, lon:12.530890613218041 },
+  { name:"Via Fra Mauro, 12", type:"Residenziale", lat:41.8866530296478, lon:12.534028228158519 },
+  { name:"Via Fra Mauro, 10", type:"Residenziale", lat:41.886997044180205, lon:12.534216139585196 }
 ];
