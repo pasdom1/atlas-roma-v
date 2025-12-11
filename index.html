@@ -110,16 +110,32 @@ map.setMaxBounds(bounds);
 
 
 // --------------------------------------------------
-function latLonToPixel(lat, lon) {
-  const x = 54528.2708239365 * lon - 5264.35641131556 * lat - 462269.595382222;
-  const y = 22853.1955817737 * lon + 38484.5147246228 * lat - 1897326.38061588;
+// MATRICE (DATA_M + provvisoriamente DATA_I)
+function latLonToPixelM(lat, lon) {
+  const x = 54528.2708239365 * lon
+          - 5264.35641131556 * lat
+          - 462269.595382222;
+  const y = 22853.1955817737 * lon
+          + 38484.5147246228 * lat
+          - 1897326.38061588;
+  return [y, x];
+}
+
+// ESTERIORITÀ (solo DATA_E)
+function latLonToPixelE(lat, lon) {
+  const x = 36074.8038237490 * lon
+          + 5464.64772941134 * lat
+          - 680415.881280752;
+  const y = 1990.04543899633 * lon
+          + 44143.5772521760 * lat
+          - 1872939.22473998;
   return [y, x];
 }
 
 
 // --------------------------------------------------
 let allMarkers = [];
-const iconURLs = ['./assets/icons/icon1.png','./assets/icons/icon2.png','./assets/icons/icon3.png'];
+const iconURLs = ['./assets/icons/icon1.png','./assets/icons/icon3.png','./assets/icons/icon2.png'];
 
 function getIcon(iconUrl, zoom) {
   const base = 18; // grandezza naturale
@@ -146,16 +162,21 @@ const groupI = L.layerGroup();
 const groupM = L.layerGroup();
 
 const datasets = [
-  { group: groupE, data: DATA_E, icon: iconURLs[0], legId:"legE", legName:"Esternalità" },
-  { group: groupI, data: DATA_I, icon: iconURLs[1], legId:"legI", legName:"Interiorità" },
-  { group: groupM, data: DATA_M, icon: iconURLs[2], legId:"legM", legName:"Matrice" }
+  // 🔹 Esteriorità → usa trasformazione E
+  { group: groupE, data: DATA_E, icon: iconURLs[0], legId:"legE", legName:"Esternalità", transformer: latLonToPixelE },
+
+  // 🔹 Interiorità → per ora continua a usare la trasformazione Matrice
+  { group: groupI, data: DATA_I, icon: iconURLs[1], legId:"legI", legName:"Interiorità", transformer: latLonToPixelM },
+
+  // 🔹 Matrice → rimane sulla sua trasformazione originale
+  { group: groupM, data: DATA_M, icon: iconURLs[2], legId:"legM", legName:"Matrice", transformer: latLonToPixelM }
 ];
 
 datasets.forEach(ds=>{
   ds.data.forEach(p=>{
-    const [y,x]=latLonToPixel(p.lat,p.lon);
+    const [y,x] = ds.transformer(p.lat, p.lon);
     const marker=L.marker([y,x],{ icon:getIcon(ds.icon,map.getZoom()) })
-      .bindPopup(`<b>${p.name}</b><br>${p.type}`);
+      .bindPopup(`<b>${p.name}</b>`);
     ds.group.addLayer(marker);
     allMarkers.push({marker,iconUrl:ds.icon});
   });
