@@ -111,6 +111,7 @@ map.setMaxBounds(bounds);
 
 // --------------------------------------------------
 // MATRICE (DATA_M + provvisoriamente DATA_I)
+// MATRICE (DATA_M + usata temporaneamente anche prima)
 function latLonToPixelM(lat, lon) {
   const x = 54528.2708239365 * lon
           - 5264.35641131556 * lat
@@ -121,7 +122,7 @@ function latLonToPixelM(lat, lon) {
   return [y, x];
 }
 
-// ESTERIORITÀ (solo DATA_E)
+// ESTERIORITÀ (DATA_E) – calcolata sui 3 punti di Tor Pignattara
 function latLonToPixelE(lat, lon) {
   const x = 36074.8038237490 * lon
           + 5464.64772941134 * lat
@@ -129,6 +130,17 @@ function latLonToPixelE(lat, lon) {
   const y = 1990.04543899633 * lon
           + 44143.5772521760 * lat
           - 1872939.22473998;
+  return [y, x];
+}
+
+// INTERIORITÀ (DATA_I) – calcolata sui 3 punti che mi hai dato ora
+function latLonToPixelI(lat, lon) {
+  const x = 34762.2354475593 * lon
+          + 862.993582231959 * lat
+          - 471239.918380728;
+  const y = 7735.96296088214 * lon
+          + 47995.7880433514 * lat
+          - 2106343.71493314;
   return [y, x];
 }
 
@@ -162,13 +174,11 @@ const groupI = L.layerGroup();
 const groupM = L.layerGroup();
 
 const datasets = [
-  // 🔹 Esteriorità → usa trasformazione E
+  // Esteriorità → trasformatore dedicato E
   { group: groupE, data: DATA_E, icon: iconURLs[0], legId:"legE", legName:"Esternalità", transformer: latLonToPixelE },
-
-  // 🔹 Interiorità → per ora continua a usare la trasformazione Matrice
-  { group: groupI, data: DATA_I, icon: iconURLs[1], legId:"legI", legName:"Interiorità", transformer: latLonToPixelM },
-
-  // 🔹 Matrice → rimane sulla sua trasformazione originale
+  // Interiorità → trasformatore dedicato I
+  { group: groupI, data: DATA_I, icon: iconURLs[1], legId:"legI", legName:"Interiorità", transformer: latLonToPixelI },
+  // Matrice → trasformatore M
   { group: groupM, data: DATA_M, icon: iconURLs[2], legId:"legM", legName:"Matrice", transformer: latLonToPixelM }
 ];
 
